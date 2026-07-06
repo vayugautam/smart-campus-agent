@@ -21,6 +21,7 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 from app.tools.availability_checker import check_availability
 from app.tools.booking import create_booking
+from app.tools.registration import check_registration_open, create_registration
 from app.tools.retrieval import (
     EVENTS_PATH,
     FACILITIES_PATH,
@@ -46,6 +47,8 @@ class AgentState(TypedDict):
     booking_result: dict[str, Any] | None
     pending_clarification: dict[str, Any] | None
     clarified_facility: dict[str, Any] | None
+    registration_check: dict[str, Any] | None
+    registration_result: dict[str, Any] | None
 
 
 class IntentClassification(BaseModel):
@@ -258,6 +261,55 @@ def previous_available_slot(state: AgentState) -> dict[str, Any] | None:
 
 def asks_to_book(message: str) -> bool:
     return bool(re.search(r"\b(book|booking|reserve|reservation)\b", message.lower()))
+
+def asks_to_register(message: str) -> bool:
+    return bool(re.search(r"\b(register|registration|enroll|sign up|join|attend)\b", message.lower()))
+
+def resolve_event_id(message: str, retrieved_context: dict[str, Any] | None) -> dict[str, Any]:
+    events = load_json_list(EVENTS_PATH)
+    message_norm = normalize_text(message)
+    exact_matches = []
+    direct_matches = []
+
+    for event in events:
+        name_norm = normalize_text(event["name"])
+        id_norm = normalize_text(event["id"])
+        name_words = significant_words(event["name"])
+        if name_norm in message_norm or id_norm in message_norm:
+            direct_matches.append(event)
+        elif name_words.issubset(significant_words(message)):
+            exact_matches.append(event)
+
+    if len(direct_matches) == 1:
+        return {"event": direct_matches[0], "needs_clarification": False, "reason": None}
+    if len(direct_matches) > 1:
+        return {
+            "event": None,
+            "needs_clarification": True,
+            "reason": "Multiple events matched that request.",
+            "candidates": direct_matches,
+        }
+
+    if len(exact_matches) == 1:
+        return {"event": exact_matches[0], "needs_clarification": False, "reason": None}
+    if len(exact_matches) > 1:
+        return {
+            "event": None,
+            "needs_clarification": True,
+            "reason": "Multiple events matched that request.",
+            "candidates": exact_matches,
+        }
+
+    candidates = []
+    if retrieved_context and retrieved_context.get("type") == "events":
+        candidates = retrieved_context.get("matches", [])[:3]
+
+    return {
+        "event": None,
+        "needs_clarification": True,
+        "reason": "I could not resolve a specific event name without guessing.",
+        "candidates": candidates,
+    }
 
 
 def build_pending_clarification(
@@ -544,6 +596,44 @@ def check_constraints(state: AgentState) -> dict:
     }
 
 
+def check_registration(state: AgentState) -> dict:
+    """Checks the registration open status and capacity for the requested event."""
+    message = latest_user_message(state)
+    event_resolution = resolve_event_id(message, state.get("retrieved_context"))
+    
+    if event_resolution.get("needs_clarification"):
+        return {
+            "registration_check": {
+                "open": False,
+                "needs_clarification": True,
+                "reason": event_resolution["reason"],
+                "candidates": event_resolution.get("candidates", [])
+            },
+            "requires_confirmation": False
+        }
+        
+    event = event_resolution["event"]
+    result = check_registration_open(event["id"])
+    result["event"] = event
+    
+    return {
+        "registration_check": result,
+        "requires_confirmation": result.get("open") is True
+    }
+
+
+def execute_registration(state: AgentState) -> dict:
+    """Invokes the registration tool to sign up the user."""
+    reg_check = state.get("registration_check") or {}
+    event = reg_check.get("event")
+    
+    if not event or reg_check.get("open") is not True:
+        return {"registration_result": {"success": False, "error": "Event is not open for registration."}}
+        
+    result = create_registration(event["id"], "demo_user")
+    return {"registration_result": result}
+
+
 def request_clarification(state: AgentState) -> dict:
     """Interrupt the graph and wait for a facility-name clarification."""
     pending = state.get("pending_clarification") or {}
@@ -591,16 +681,21 @@ def request_confirmation(state: AgentState) -> dict:
     """
     Uses LangGraph's interrupt() to pause execution and request user approval.
     """
-    availability = state.get("availability_result") or {}
-    slot = availability.get("requested_slot") or {}
-    facility_name = slot.get("facility", {}).get("name", slot.get("facility_id", "that facility"))
-    date_text = slot.get("date", "the requested date")
-    start_time = slot.get("start_time", "the requested start time")
-    end_time = slot.get("end_time", "the requested end time")
-    confirmation_prompt = (
-        f"{facility_name} is available on {date_text} from {start_time} to {end_time}. "
-        "Please explicitly confirm this booking (Yes/No)."
-    )
+    reg_check = state.get("registration_check") or {}
+    if reg_check:
+        event_name = reg_check.get("event", {}).get("name", "that event")
+        confirmation_prompt = f"Registration for {event_name} is open. Please explicitly confirm you want to register (Yes/No)."
+    else:
+        availability = state.get("availability_result") or {}
+        slot = availability.get("requested_slot") or {}
+        facility_name = slot.get("facility", {}).get("name", slot.get("facility_id", "that facility"))
+        date_text = slot.get("date", "the requested date")
+        start_time = slot.get("start_time", "the requested start time")
+        end_time = slot.get("end_time", "the requested end time")
+        confirmation_prompt = (
+            f"{facility_name} is available on {date_text} from {start_time} to {end_time}. "
+            "Please explicitly confirm this booking (Yes/No)."
+        )
 
     # LangGraph's interrupt pauses execution and sends this payload to the client.
     # The graph won't proceed until the client resumes it with a user response.
@@ -711,9 +806,11 @@ Intent: {state.get("intent")}
 Retrieved context: {state.get("retrieved_context")}
 Availability result: {state.get("availability_result")}
 Booking result: {state.get("booking_result")}
+Registration check: {state.get("registration_check")}
+Registration result: {state.get("registration_result")}
 
 Write a natural response that names real events, facilities, availability, alternatives,
-or booking IDs when present. Ask for clarification when the state says clarification is needed.
+or booking/registration IDs when present. Ask for clarification when the state says clarification is needed.
 """
     if has_real_groq_key():
         try:
@@ -726,6 +823,29 @@ or booking IDs when present. Ask for clarification when the state says clarifica
     retrieved = state.get("retrieved_context") or {}
     availability = state.get("availability_result") or {}
     booking = state.get("booking_result") or {}
+    reg_check = state.get("registration_check") or {}
+    reg_result = state.get("registration_result") or {}
+
+    if reg_result:
+        if reg_result.get("success"):
+            event_name = (reg_check.get("event") or {}).get("name", "the event")
+            return {
+                "messages": [AIMessage(content=f"Successfully registered for {event_name}. Your registration ID is {reg_result['registration_id']}.")],
+                "pending_clarification": None,
+                "clarified_facility": None,
+            }
+        return {
+            "messages": [AIMessage(content=f"I could not complete the registration: {reg_result.get('error', 'unknown error')}.")],
+            "pending_clarification": None,
+            "clarified_facility": None,
+        }
+
+    if reg_check and not reg_check.get("open"):
+        return {
+            "messages": [AIMessage(content=reg_check.get("reason", "Registration is currently closed or full for this event."))],
+            "pending_clarification": None,
+            "clarified_facility": None,
+        }
 
     if booking:
         if booking.get("success"):
@@ -854,15 +974,28 @@ def route_from_start(state: AgentState) -> str:
 def route_after_retrieval(state: AgentState) -> str:
     """
     Decision Point: What to do after gathering basic context.
-    If the user wants to book, retrieving basic facility info is not enough—
-    we must also check availability and time constraints.
-    Otherwise, we have all we need to answer the question.
     """
     retrieved = state.get("retrieved_context") or {}
     if retrieved.get("needs_clarification"):
         return "generate_response"
-    if state.get("intent") == "booking_query":
+        
+    intent = state.get("intent")
+    message = latest_user_message(state)
+    
+    if intent == "booking_query":
         return "check_constraints"
+        
+    if intent == "event_query" and asks_to_register(message):
+        return "check_registration"
+        
+    return "generate_response"
+
+def route_after_registration_check(state: AgentState) -> str:
+    reg_check = state.get("registration_check") or {}
+    if reg_check.get("needs_clarification"):
+        return "generate_response"
+    if reg_check.get("open") is True:
+        return "request_confirmation"
     return "generate_response"
 
 def route_after_constraints(state: AgentState) -> str:
@@ -891,10 +1024,10 @@ def route_after_clarification(state: AgentState) -> str:
 def route_after_confirmation(state: AgentState) -> str:
     """
     Decision Point: Did the user approve the action?
-    If the user explicitly confirmed via the interrupt(), we proceed to execute the booking.
-    If they denied it, we skip execution and generate an acknowledgment of cancellation.
     """
     if state.get("confirmed") is True:
+        if state.get("registration_check"):
+            return "execute_registration"
         return "execute_booking"
     return "generate_response"
 
@@ -914,9 +1047,11 @@ def build_graph() -> StateGraph:
     workflow.add_node("classify_intent", classify_intent)
     workflow.add_node("retrieve_info", retrieve_info)
     workflow.add_node("check_constraints", check_constraints)
+    workflow.add_node("check_registration", check_registration)
     workflow.add_node("request_clarification", request_clarification)
     workflow.add_node("request_confirmation", request_confirmation)
     workflow.add_node("execute_booking", execute_booking)
+    workflow.add_node("execute_registration", execute_registration)
     workflow.add_node("generate_response", generate_response)
     
     # Add edges
@@ -926,11 +1061,13 @@ def build_graph() -> StateGraph:
     workflow.add_conditional_edges("resume_clarification", route_after_clarification)
     workflow.add_conditional_edges("retrieve_info", route_after_retrieval)
     workflow.add_conditional_edges("check_constraints", route_after_constraints)
+    workflow.add_conditional_edges("check_registration", route_after_registration_check)
     workflow.add_conditional_edges("request_clarification", route_after_clarification)
     workflow.add_conditional_edges("request_confirmation", route_after_confirmation)
     
     # Post-execution paths
     workflow.add_edge("execute_booking", "generate_response")
+    workflow.add_edge("execute_registration", "generate_response")
     workflow.add_edge("generate_response", END)
     
     # Compile with MemorySaver to ensure conversation persistence and enable interrupt capability.

@@ -136,7 +136,7 @@ function ErrorState({ onRetry }) {
       </div>
       <div className="text-center">
         <p className="text-rose-700 font-semibold text-sm">Couldn't load events</p>
-        <p className="text-rose-500 text-xs mt-1">Make sure the backend is running at localhost:8000</p>
+        <p className="text-rose-500 text-xs mt-1">Make sure the backend is reachable</p>
       </div>
       <button
         onClick={onRetry}
