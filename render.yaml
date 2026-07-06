@@ -8,12 +8,13 @@ services:
       - key: GROQ_API_KEY
         sync: false # You will need to enter this in the Render dashboard
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: "3.10.0"
 
-staticSites:
-  - name: campus-agent-ui
+  - type: web
+    name: campus-agent-ui
+    env: static
     buildCommand: "cd frontend && npm install && npm run build"
-    publishPath: "./frontend/dist"
+    staticPublishPath: "./frontend/dist"
     envVars:
       - key: VITE_API_BASE_URL
         fromService:
