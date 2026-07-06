@@ -1,0 +1,102 @@
+[
+  {
+    "id": "evt-001",
+    "name": "Orientation Week Kickoff",
+    "date": "2026-07-20",
+    "time": "09:00",
+    "venue": "Main Auditorium",
+    "description": "Welcome ceremony for the incoming batch of 2026. Includes an address by the Vice-Chancellor, campus tour signups, and a student-club showcase in the lobby.",
+    "category": "academic",
+    "registration_required": false
+  },
+  {
+    "id": "evt-002",
+    "name": "Workshop: Practical Machine Learning with PyTorch",
+    "date": "2026-07-25",
+    "time": "14:00",
+    "venue": "Computer Lab 1",
+    "description": "Hands-on, 3-hour workshop covering data loading, model training, and deployment basics using PyTorch. Bring your own laptop; GPUs will be available via the campus cluster.",
+    "category": "technology",
+    "registration_required": true
+  },
+  {
+    "id": "evt-003",
+    "name": "Rhythmia 2026 — Annual Cultural Fest",
+    "date": "2026-08-08",
+    "time": "17:00",
+    "venue": "Open Air Theatre",
+    "description": "Three-day cultural extravaganza featuring band performances, classical dance competitions, stand-up comedy, and a DJ night. Day 1 opens with the Battle of Bands.",
+    "category": "cultural",
+    "registration_required": false
+  },
+  {
+    "id": "evt-004",
+    "name": "Guest Lecture: Sustainable Urban Engineering",
+    "date": "2026-07-30",
+    "time": "11:00",
+    "venue": "Seminar Hall A",
+    "description": "Dr. Meera Kapoor (IIT Bombay) discusses green building standards, urban heat-island mitigation, and wastewater recycling in smart cities. Open to all departments.",
+    "category": "academic",
+    "registration_required": false
+  },
+  {
+    "id": "evt-005",
+    "name": "Inter-College Basketball Tournament",
+    "date": "2026-08-02",
+    "time": "08:00",
+    "venue": "Sports Complex — Indoor Court",
+    "description": "Two-day round-robin tournament with 8 colleges competing. Finals on Aug 3 at 16:00. Free entry for spectators; players must register via the Sports Office.",
+    "category": "sports",
+    "registration_required": true
+  },
+  {
+    "id": "evt-006",
+    "name": "Hackathon: Code for Change",
+    "date": "2026-08-15",
+    "time": "10:00",
+    "venue": "Computer Lab 1",
+    "description": "24-hour hackathon themed around civic-tech solutions. Teams of 2-4 build prototypes addressing public transportation, waste management, or citizen safety. Prizes worth ₹1,00,000.",
+    "category": "technology",
+    "registration_required": true
+  },
+  {
+    "id": "evt-007",
+    "name": "Undergraduate Research Symposium",
+    "date": "2026-08-10",
+    "time": "09:30",
+    "venue": "Seminar Hall A",
+    "description": "Students present original research papers across STEM and humanities tracks. Best Paper awards in each track. Abstract submission deadline: Aug 1.",
+    "category": "academic",
+    "registration_required": true
+  },
+  {
+    "id": "evt-008",
+    "name": "Alumni Networking Mixer",
+    "date": "2026-08-05",
+    "time": "18:00",
+    "venue": "Conference Room B",
+    "description": "Informal meet-and-greet with alumni from the classes of 2016-2022 working in fintech, consulting, and deep-tech startups. Light refreshments provided.",
+    "category": "networking",
+    "registration_required": true
+  },
+  {
+    "id": "evt-009",
+    "name": "Blood Donation Drive",
+    "date": "2026-07-28",
+    "time": "10:00",
+    "venue": "Health Centre Lobby",
+    "description": "Organized in partnership with the Red Cross. All healthy donors (18+) welcome. Free hemoglobin check and refreshments post-donation.",
+    "category": "social",
+    "registration_required": false
+  },
+  {
+    "id": "evt-010",
+    "name": "Open Mic & Poetry Night",
+    "date": "2026-08-12",
+    "time": "19:00",
+    "venue": "Library Discussion Room",
+    "description": "An intimate evening of spoken word, poetry, and acoustic music. Sign up for a 5-minute slot at the Literary Society desk or just come to listen.",
+    "category": "cultural",
+    "registration_required": false
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "fac-001",
+    "name": "Main Auditorium",
+    "type": "auditorium",
+    "capacity": 500,
+    "location": "Admin Block, Ground Floor",
+    "equipment": ["projector", "surround-sound system", "wireless microphones", "stage lighting", "green room"],
+    "bookable": true
+  },
+  {
+    "id": "fac-002",
+    "name": "Seminar Hall A",
+    "type": "seminar_hall",
+    "capacity": 120,
+    "location": "Academic Block 2, First Floor",
+    "equipment": ["projector", "PA system", "whiteboard", "video-conferencing setup", "air conditioning"],
+    "bookable": true
+  },
+  {
+    "id": "fac-003",
+    "name": "Computer Lab 1",
+    "type": "computer_lab",
+    "capacity": 60,
+    "location": "IT Building, Second Floor",
+    "equipment": ["60 desktop PCs (i7, 16 GB RAM)", "1 Gbps LAN", "projector", "air conditioning", "UPS backup"],
+    "bookable": true
+  },
+  {
+    "id": "fac-004",
+    "name": "Computer Lab 2",
+    "type": "computer_lab",
+    "capacity": 40,
+    "location": "IT Building, Third Floor",
+    "equipment": ["40 desktop PCs (Ryzen 5, 8 GB RAM)", "projector", "air conditioning", "UPS backup"],
+    "bookable": true
+  },
+  {
+    "id": "fac-005",
+    "name": "Physics Laboratory",
+    "type": "science_lab",
+    "capacity": 30,
+    "location": "Science Block, Ground Floor",
+    "equipment": ["optical bench", "oscilloscopes", "spectrometers", "fume hood", "first-aid kit"],
+    "bookable": true
+  },
+  {
+    "id": "fac-006",
+    "name": "Conference Room B",
+    "type": "conference_room",
+    "capacity": 20,
+    "location": "Admin Block, Second Floor",
+    "equipment": ["55-inch display", "video-conferencing camera", "speakerphone", "whiteboard", "air conditioning"],
+    "bookable": true
+  },
+  {
+    "id": "fac-007",
+    "name": "Library Discussion Room",
+    "type": "discussion_room",
+    "capacity": 12,
+    "location": "Central Library, Mezzanine Floor",
+    "equipment": ["whiteboard", "power outlets", "Wi-Fi", "sound-proofing"],
+    "bookable": true
+  },
+  {
+    "id": "fac-008",
+    "name": "Sports Complex — Indoor Court",
+    "type": "sports_facility",
+    "capacity": 200,
+    "location": "Sports Complex, Main Wing",
+    "equipment": ["basketball court", "badminton nets (4)", "volleyball net", "electronic scoreboard", "changing rooms"],
+    "bookable": true
+  },
+  {
+    "id": "fac-009",
+    "name": "Open Air Theatre",
+    "type": "amphitheatre",
+    "capacity": 300,
+    "location": "Central Lawn, behind Library",
+    "equipment": ["permanent stage", "flood lights", "portable PA system", "power distribution board"],
+    "bookable": true
+  },
+  {
+    "id": "fac-010",
+    "name": "Media & Recording Studio",
+    "type": "studio",
+    "capacity": 8,
+    "location": "Mass Communication Block, Basement",
+    "equipment": ["sound-proof booth", "condenser microphones", "audio mixer", "green screen", "DSLR camera kit", "teleprompter"],
+    "bookable": true
+  }
+]

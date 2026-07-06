@@ -1,0 +1,11 @@
+[
+  {
+    "id": "bkg-001",
+    "facility_id": "fac-001",
+    "user": "demo_user",
+    "date": "2026-08-01",
+    "start_time": "09:00",
+    "end_time": "11:00",
+    "status": "confirmed"
+  }
+]
